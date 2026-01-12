@@ -98,13 +98,18 @@ document.querySelectorAll('.nav-link[data-page]').forEach(link => {
     });
 });
 
-// ===== DROPDOWN FUNCTIONALITY =====
+// ===== DROPDOWN FUNCTIONALITY (FIXED) =====
 document.querySelectorAll('.projects-link, .whitepapers-link, .apps-link').forEach(parentLink => {
     const dropdown = parentLink.querySelector('.dropdown-menu');
     const arrow = parentLink.querySelector('.dropdown-arrow');
 
+    // Function to check if we're in mobile view
+    function isMobileView() {
+        return window.innerWidth <= 900;
+    }
+
     // Desktop: hover behavior
-    if (window.innerWidth > 900) {
+    if (!isMobileView()) {
         parentLink.addEventListener('mouseenter', function() {
             if (dropdown) {
                 dropdown.classList.add('show');
@@ -120,13 +125,20 @@ document.querySelectorAll('.projects-link, .whitepapers-link, .apps-link').forEa
         });
     }
 
-    // Mobile: click behavior
-    if (arrow && dropdown) {
-        arrow.addEventListener('click', function(e) {
-            if (window.innerWidth <= 900) {
-                e.preventDefault();
-                e.stopPropagation();
+    // Mobile/Desktop: click behavior for the entire parent link
+    parentLink.addEventListener('click', function(e) {
+        // Check if we clicked directly on the arrow or its descendants
+        const clickedArrow = e.target.classList.contains('dropdown-arrow') || 
+                           e.target.closest('.dropdown-arrow');
+        
+        if (isMobileView()) {
+            e.preventDefault();
+            e.stopPropagation();
 
+            if (clickedArrow) {
+                // Arrow was clicked - toggle dropdown
+                const isOpen = dropdown && dropdown.classList.contains('show');
+                
                 // Close other dropdowns
                 document.querySelectorAll('.dropdown-menu').forEach(otherDropdown => {
                     if (otherDropdown !== dropdown) {
@@ -141,7 +153,57 @@ document.querySelectorAll('.projects-link, .whitepapers-link, .apps-link').forEa
                 });
 
                 // Toggle current dropdown
+                if (dropdown) {
+                    if (isOpen) {
+                        dropdown.classList.remove('show');
+                        parentLink.classList.remove('active');
+                    } else {
+                        dropdown.classList.add('show');
+                        parentLink.classList.add('active');
+                    }
+                }
+            } else {
+                // Parent link text was clicked - navigate to section
+                let pageId = null;
+                if (parentLink.classList.contains('projects-link')) {
+                    pageId = 'projects';
+                } else if (parentLink.classList.contains('whitepapers-link')) {
+                    pageId = 'whitepapers';
+                } else if (parentLink.classList.contains('apps-link')) {
+                    pageId = 'apps';
+                }
+
+                if (pageId) {
+                    showPage(pageId);
+                    closeMobileMenu();
+                }
+            }
+        }
+    });
+
+    // Add touch support for better mobile experience
+    if (arrow && dropdown) {
+        arrow.addEventListener('touchstart', function(e) {
+            if (isMobileView()) {
+                e.preventDefault();
+                e.stopPropagation();
+                
                 const isOpen = dropdown.classList.contains('show');
+                
+                // Close other dropdowns
+                document.querySelectorAll('.dropdown-menu').forEach(otherDropdown => {
+                    if (otherDropdown !== dropdown) {
+                        otherDropdown.classList.remove('show');
+                    }
+                });
+                
+                document.querySelectorAll('.projects-link, .whitepapers-link, .apps-link').forEach(link => {
+                    if (link !== parentLink) {
+                        link.classList.remove('active');
+                    }
+                });
+
+                // Toggle current dropdown
                 if (isOpen) {
                     dropdown.classList.remove('show');
                     parentLink.classList.remove('active');
@@ -150,40 +212,15 @@ document.querySelectorAll('.projects-link, .whitepapers-link, .apps-link').forEa
                     parentLink.classList.add('active');
                 }
             }
-        });
+        }, { passive: false });
     }
-
-    // Parent link click (mobile) - navigate to section
-    parentLink.addEventListener('click', function(e) {
-        if (window.innerWidth <= 900) {
-            // Don't navigate if clicking the arrow
-            if (e.target && e.target.closest('.dropdown-arrow')) {
-                return;
-            }
-
-            e.preventDefault();
-            
-            // Determine which page to show
-            let pageId = null;
-            if (parentLink.classList.contains('projects-link')) {
-                pageId = 'projects';
-            } else if (parentLink.classList.contains('whitepapers-link')) {
-                pageId = 'whitepapers';
-            } else if (parentLink.classList.contains('apps-link')) {
-                pageId = 'apps';
-            }
-
-            if (pageId) {
-                showPage(pageId);
-                closeMobileMenu();
-            }
-        }
-    });
 });
 
 // Handle dropdown menu links
 document.querySelectorAll('.dropdown-menu a').forEach(dropdownLink => {
     dropdownLink.addEventListener('click', function(e) {
+        e.stopPropagation(); // Prevent parent click handler from firing
+        
         // If it's an external link (href starts with http), let it work normally
         const href = this.getAttribute('href');
         if (href && (href.startsWith('http') || href.startsWith('//'))) {
