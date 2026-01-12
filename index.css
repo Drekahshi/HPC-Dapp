@@ -1319,11 +1319,16 @@ h1, h2, h3, h4 {
     transition: var(--transition);
     z-index: 1003;
     border: 1px solid rgba(0, 200, 83, 0.3);
+    position: relative;
   }
 
   .hamburger:hover {
     background: rgba(0, 200, 83, 0.2);
     transform: scale(1.05);
+  }
+
+  .hamburger:active {
+    transform: scale(0.95);
   }
 
   .hamburger span {
@@ -1333,7 +1338,7 @@ h1, h2, h3, h4 {
     background: var(--accent-green);
     margin: 3px 0;
     border-radius: 3px;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   }
 
   /* Animated X when menu is open */
@@ -1367,11 +1372,14 @@ h1, h2, h3, h4 {
     z-index: 1002;
     flex-direction: column;
     gap: 4px;
+    max-height: calc(100vh - 90px);
+    overflow-y: auto;
   }
 
-  /* Show menu when mobile-open class is added */
-  .nav-menu.mobile-open {
-    display: flex;
+  /* Show menu when mobile-open or open class is added */
+  .nav-menu.mobile-open,
+  .nav-menu.open {
+    display: flex !important;
     animation: slideDown 0.3s ease-out;
   }
 
