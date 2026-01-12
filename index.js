@@ -97,8 +97,15 @@ document.querySelectorAll('.projects-link, .whitepapers-link, .apps-link').forEa
                 document.querySelectorAll('.dropdown-menu').forEach(d => d.classList.remove('show'));
                 document.querySelectorAll('.projects-link, .whitepapers-link, .apps-link').forEach(l => l.classList.remove('active'));
 
-                // Navigate
-                window.location.hash = targetHash;
+                const targetEl = document.querySelector(targetHash);
+                if (targetEl && typeof targetEl.scrollIntoView === 'function') {
+                    targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                if (history && typeof history.replaceState === 'function') {
+                    history.replaceState(null, '', targetHash);
+                } else {
+                    window.location.hash = targetHash;
+                }
             }
         }
     });
